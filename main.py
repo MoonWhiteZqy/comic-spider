@@ -36,6 +36,7 @@ def download_img(url, index, file_name):
             # time.sleep(2)
             browser.refresh()
             view_fail = False
+            break
         except:
             continue
     if view_fail:
