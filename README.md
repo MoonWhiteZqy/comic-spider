@@ -30,4 +30,5 @@ web_link：漫画目录网址
 运行过程中产生的chromedriver和chrome进程无法自动终止  
 使用cmd终止:  
 `taskkill /im chromedriver.exe /F`  
-`taskkill /im chrome.exe /F`
+`taskkill /im chrome.exe /F`  
+或者运行clear_proc.bat
