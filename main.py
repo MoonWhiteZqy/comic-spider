@@ -24,6 +24,7 @@ def load_cookie(browser):
         browser.add_cookie(cookie)
 
 
+# 废弃方法
 def download_img(url, index, file_name):
     view_fail = True
     img = b'1111'
@@ -51,7 +52,7 @@ def download_img(url, index, file_name):
     try:
         img = requests.get(img_url['src']).content
     except:
-        print('未知错误')
+        print('网页切换失败')
         pass
     with open(file_name, 'wb') as f:
         f.write(img)
@@ -86,25 +87,57 @@ def download_comic(url, chapter_name, path):
         return
     # time.sleep(2)
     # 当前章节的基础url
-    base_url = url + '#image_id='
+    # base_url = url + '#image_id='
+
+    # 除去新打开页面的遮罩层
+    try:
+        cover = browser.find_element_by_class_name('sb_box')
+        cover.click()
+    except:
+        pass
 
     source = browser.page_source
-    # 通过正则表达式找到记录图片id的json字符串
-    pattern = r'image_list:.*}}'
-    source = re.findall(pattern, source)[0]
-    # 删除前缀，只留下数据的json字符串
-    source = source[source.index(' ') + 1:]
-    image_list = json.loads(source)
-    browser.quit()
+    try:
+        # 通过正则表达式找到记录图片id的json字符串
+        pattern = r'image_list:.*}}'
+        source = re.findall(pattern, source)[0]
+        # 删除前缀，只留下数据的json字符串
+        source = source[source.index(' ') + 1:]
+        image_list = json.loads(source)
+        # browser.quit()
+    except:
+        browser.quit()
+        print('需要先载入cookie')
+        exit(0)
 
     print('开始进行下载，当前章节：' + chapter_name)
+    next_page = browser.find_element_by_class_name('next')
     for key, value in image_list.items():
-        image_id = value['image_id']
+        time.sleep(1)
         file_name = folder + '/' + key + '.jpg'
+        image_id = value['image_id']
         if os.path.exists(file_name):
+            next_page.click()
             continue
-        download_img(base_url + image_id, image_id, file_name)
+        page = browser.page_source
+        page = BeautifulSoup(page, features='html.parser')
+        img_url = page.find('img', {'id': 'cur_img_' + image_id})
+        try:
+            img = requests.get(img_url['src']).content
+        except:
+            img = b'1111'
+        with open(file_name, 'wb') as f:
+            f.write(img)
+        next_page.click()
+        print(file_name + '下载完成')
+    # for key, value in image_list.items():
+    #     image_id = value['image_id']
+    #     file_name = folder + '/' + key + '.jpg'
+    #     if os.path.exists(file_name):
+    #         continue
+    #     download_img(base_url + image_id, image_id, file_name)
     print(chapter_name + '下载结束')
+    browser.quit()
 
 
 def get_comic_by_links(links, path):
@@ -137,8 +170,8 @@ def get_links(url):
 
 
 if __name__ == '__main__':
-    folder_path = 'D:/文件/漫画/星迹/'
-    web_link = 'https://www.u17.com/comic/76564.html'
+    folder_path = 'D:/文件/漫画/雏蜂/'
+    web_link = 'https://www.u17.com/comic/195.html'
     comic_links = get_links(web_link)
     read_cookie()
     get_comic_by_links(comic_links, folder_path)
