@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import ElementClickInterceptedException
 import time
 import json
 import requests
@@ -8,7 +9,7 @@ import re
 import os
 
 option = webdriver.ChromeOptions()
-option.add_argument('headless')
+# option.add_argument('headless')
 global cookie_list
 
 def read_cookie():
@@ -63,6 +64,8 @@ def download_img(url, index, file_name):
 # 开始下载漫画
 def download_comic(url, chapter_name, path):
     # 检查下载路径
+    if ':' in chapter_name:
+        chapter_name = chapter_name.replace(':', ' ')
     folder = path + chapter_name
     if not os.path.exists(folder):
         os.mkdir(folder)
@@ -117,7 +120,10 @@ def download_comic(url, chapter_name, path):
         file_name = folder + '/' + key + '.jpg'
         image_id = value['image_id']
         if os.path.exists(file_name):
-            next_page.click()
+            try:
+                next_page.click()
+            except ElementClickInterceptedException:
+                return
             continue
         page = browser.page_source
         page = BeautifulSoup(page, features='html.parser')
@@ -128,7 +134,10 @@ def download_comic(url, chapter_name, path):
             img = b'1111'
         with open(file_name, 'wb') as f:
             f.write(img)
-        next_page.click()
+        try:
+            next_page.click()
+        except ElementClickInterceptedException:
+            return 
         print(file_name + '下载完成')
     # for key, value in image_list.items():
     #     image_id = value['image_id']
@@ -169,9 +178,23 @@ def get_links(url):
     return links
 
 
-if __name__ == '__main__':
-    folder_path = 'D:/文件/漫画/雏蜂/'
-    web_link = 'https://www.u17.com/comic/195.html'
+def main_fun(num):
+    if num == 0:
+        folder_path = 'D:/文件/漫画/驭灵师/'
+        web_link = 'https://www.u17.com/comic/121836.html'
+    elif num == 1:
+        folder_path = 'D:/文件/漫画/镇魂街/'
+        web_link = 'https://www.u17.com/comic/3166.html'
+    elif num == 2:
+        folder_path = 'D:/文件/漫画/雏蜂/'
+        web_link = 'https://www.u17.com/comic/195.html'
+    elif num == 3:
+        folder_path = 'D:/文件/漫画/虎X鹤/'
+        web_link = 'https://www.u17.com/comic/8805.html'
     comic_links = get_links(web_link)
     read_cookie()
     get_comic_by_links(comic_links, folder_path)
+
+if __name__ == '__main__':
+    for i in range(1):
+        main_fun(i)
