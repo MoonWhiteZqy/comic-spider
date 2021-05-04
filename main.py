@@ -9,7 +9,8 @@ import re
 import os
 
 option = webdriver.ChromeOptions()
-# option.add_argument('headless')
+# 这里加上这句使程序以无窗口模式运行
+option.add_argument('headless')
 global cookie_list
 
 def read_cookie():
@@ -22,6 +23,9 @@ def load_cookie(browser):
     global cookie_list
     browser.delete_all_cookies()
     for cookie in cookie_list:
+        # ChromeDriver更新后需要判断cookie的domain，否则会出现"domain mismatch"的错误导致运行失败
+        if cookie['domain'] == 'www.u17.com':
+            continue
         browser.add_cookie(cookie)
 
 
@@ -88,9 +92,6 @@ def download_comic(url, chapter_name, path):
     if view_fail:
         print(chapter_name + '访问失败')
         return
-    # time.sleep(2)
-    # 当前章节的基础url
-    # base_url = url + '#image_id='
 
     # 除去新打开页面的遮罩层
     try:
@@ -139,12 +140,7 @@ def download_comic(url, chapter_name, path):
         except ElementClickInterceptedException:
             return 
         print(file_name + '下载完成')
-    # for key, value in image_list.items():
-    #     image_id = value['image_id']
-    #     file_name = folder + '/' + key + '.jpg'
-    #     if os.path.exists(file_name):
-    #         continue
-    #     download_img(base_url + image_id, image_id, file_name)
+
     print(chapter_name + '下载结束')
     browser.quit()
 
@@ -196,5 +192,5 @@ def main_fun(num):
     get_comic_by_links(comic_links, folder_path)
 
 if __name__ == '__main__':
-    for i in range(1):
+    for i in range(4):
         main_fun(i)
