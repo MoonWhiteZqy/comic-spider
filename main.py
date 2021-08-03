@@ -169,7 +169,11 @@ def get_comic_by_links(links, path):
 
 # 给定漫画的目录页面url，获得各个章节首页的url，传入保存的文件夹路径
 def get_links(url):
-    page = requests.get(url).text
+    pageDriver = webdriver.Chrome(options=option)
+    # 原本这里可以用requests库直接获取网页内容加快速度的，但是2021.8.3发现出现403错误，改用webdriver
+    pageDriver.get(url)
+    page = pageDriver.page_source
+    pageDriver.quit()
     links = BeautifulSoup(page, features='html.parser').find_all('a', {'id': re.compile('cpt_[0-9]+')})
     return links
 
